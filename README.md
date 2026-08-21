@@ -1,51 +1,35 @@
-# 마감노트 (Deadline Note)
+# 마감노트 API
 
-취준생이 검수된 채용공고를 찾고 즐겨찾기, 지원 상태, 마감 알림을 관리하는 프로젝트입니다.
-
-## 프로젝트 구성
-
-- `user-web`: 배포용 사용자 웹. 공고 탐색, 등록 신청, 즐겨찾기와 지원 상태 관리
-- `admin-web`: 로컬 전용 관리자 웹. 신청 검수, 수정 승인, 반려, 공고 직접 등록
-- `api`: Spring Boot API. 사용자·공고·신청·지원 상태와 관리자 권한 처리
-- `compose.yaml`: 로컬 PostgreSQL 17
+사용자 웹과 관리자 웹이 함께 사용하는 Spring Boot API입니다. PostgreSQL 테이블은 실행 시 Flyway가 생성합니다.
 
 ## 로컬 실행
 
-Colima와 PostgreSQL을 시작합니다.
-
 ```bash
 colima start
+cd /Users/imjeongseo/workspace/deadline-note-api
 docker-compose up -d
+BOOTSTRAP_ADMIN_EMAIL=admin@example.com ./gradlew bootRun
 ```
 
-API:
+`BOOTSTRAP_ADMIN_EMAIL`은 로컬에서 관리자 권한을 부여할 이메일입니다. 관리자 웹의 `VITE_ADMIN_EMAIL`과 같은 값을 사용합니다.
 
-```bash
-cd api
-./gradlew bootRun
+## 프론트엔드 설정
+
+사용자 웹 `/Users/imjeongseo/workspace/deadline-note-user-web/.env.local`:
+
+```dotenv
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+NEXT_PUBLIC_USER_EMAIL=user@example.com
 ```
 
-사용자 웹:
+관리자 웹 `/Users/imjeongseo/workspace/deadline-note-admin-web/.env`:
 
-```bash
-cd user-web
-npm install
-npm run dev
+```dotenv
+VITE_API_BASE_URL=http://localhost:8080
+VITE_ADMIN_EMAIL=admin@example.com
 ```
 
-관리자 웹:
-
-```bash
-cd admin-web
-npm install
-npm run dev
-```
-
-- 사용자 웹: `http://localhost:3000`
-- 관리자 웹: `http://localhost:5173`
-- API: `http://localhost:8080`
-
-개발 API는 `X-User-Email` 헤더가 없으면 `demo.user@local.test`를 사용합니다. 관리자 API 테스트에는 `X-User-Email: admin@local.test`를 사용합니다. 운영 배포 전에는 Google OAuth 인증으로 교체해야 합니다.
+현재 이메일 헤더는 OAuth 도입 전 로컬 개발을 위한 임시 인증 방식입니다. 운영 환경에서는 검증된 로그인 토큰으로 교체해야 합니다.
 
 ## 주요 API
 
@@ -57,10 +41,3 @@ npm run dev
 - `POST /api/admin/submissions/{id}/approve`
 - `POST /api/admin/submissions/{id}/reject`
 - `POST /api/admin/jobs`
-
-## 데이터베이스
-
-- 제품: PostgreSQL 17
-- 로컬 데이터베이스: `job_deadline`
-- 사용자: `job_app`
-- 스키마 변경: Flyway `api/src/main/resources/db/migration`
