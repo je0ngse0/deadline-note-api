@@ -11,7 +11,7 @@ public class CurrentUserService {
     public CurrentUserService(UserAccountRepository users){this.users=users;}
     public UserAccount requireUser(HttpServletRequest request){
         String email=request.getHeader("X-User-Email");
-        if(email==null||email.isBlank()) email="demo.user@local.test";
+        if(email==null||email.isBlank()) throw new UnauthorizedException("사용자 이메일 헤더가 필요합니다.");
         String finalEmail=email.trim().toLowerCase();
         return users.findByEmail(finalEmail).orElseGet(()->users.save(new UserAccount(finalEmail,finalEmail.split("@")[0])));
     }
@@ -21,4 +21,5 @@ public class CurrentUserService {
         return user;
     }
     public static class ForbiddenException extends RuntimeException { public ForbiddenException(String message){super(message);} }
+    public static class UnauthorizedException extends RuntimeException { public UnauthorizedException(String message){super(message);} }
 }
